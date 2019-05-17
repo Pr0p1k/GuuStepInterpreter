@@ -8,7 +8,7 @@ import kotlin.collections.HashMap
 class InterpretationState {
     lateinit var inputHandler: InputHandler
     lateinit var outputHandler: OutputHandler
-    val callStack = Stack<Procedure>()
+    val callStack = Stack<Pair<Procedure, Int>>()
     val variables = TreeMap<String, Int>()
     // if functions with params are about to implement,
     // then naming constraints should be added and

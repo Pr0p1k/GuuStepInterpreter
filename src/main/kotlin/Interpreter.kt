@@ -24,6 +24,25 @@ fun main(args: Array<String>) {
 
     // Here add trees into procedures
     loadProcedureBodies(lines)
+
+    Operator.CALL.action(state, listOf("main"), state.procedures["main"]?.lineNumber
+            ?: throw NoSuchMethodError("Procedure \"main\" is not declared")
+    )
+    var localLineNumber = 0
+    stack@ while (state.callStack.isNotEmpty()) {
+        val procedure = state.callStack.peek().first
+        for (i in localLineNumber until procedure.tree.children.size) {
+            val words = getWords(procedure.tree.children[i].value)
+            val operator = parseOperator(words[0])
+            operator.action(state, words.subList(1, words.size), procedure.lineNumber + i + 1)
+            if (operator == Operator.CALL) {
+                continue@stack
+            }
+        }
+        if (state.callStack.size > 1)
+            localLineNumber = state.callStack.pop().second - state.callStack.peek().first.lineNumber
+        else state.callStack.pop()
+    }
 }
 
 /**
@@ -82,7 +101,7 @@ fun hoistDeclarations(lines: List<String>) {
             val operator = parseOperator(words[0])
             if (operator == Operator.SUB)
                 if (words.size == 2)
-                    useOperator(operator, words, i + 1)
+                    operator.action(state, words.subList(1, words.size), i + 1)
                 else
                     throw MalformedLineException("Wrong amount of parameters" +
                             " for operator ${operator.word} at line ${i + 1}")
@@ -90,13 +109,13 @@ fun hoistDeclarations(lines: List<String>) {
     }
 }
 
-/**
- * Performs actions for that operator (adds to procedures list, variables list, etc.)
- * @param operator [Operator] itself
- * @param lineNumber number to add in the map of procedures
- */
-fun useOperator(operator: Operator, params: List<String>,
-                lineNumber: Int) = operator.action(state, params, lineNumber)
+///**
+// * Performs actions for that operator (adds to procedures list, variables list, etc.)
+// * @param operator [Operator] itself
+// * @param lineNumber number to add in the map of procedures
+// */
+//fun useOperator(operator: Operator, params: List<String>,
+//                lineNumber: Int) = operator.action(state, params, lineNumber)
 
 /**
  * Loads procedure body's lines into tree

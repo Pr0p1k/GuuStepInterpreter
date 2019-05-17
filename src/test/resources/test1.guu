@@ -1,13 +1,18 @@
 sub lol
 print heh
+call lolk
 
     sub main
   call kek
     set f 5
  print f
+ print g
+ print k
 
 
 sub kek
 set f 9
 set k 12
+call lol
 sub lolk
+print k

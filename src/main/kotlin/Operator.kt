@@ -1,3 +1,4 @@
+import java.lang.IllegalArgumentException
 import java.util.function.Consumer
 
 /**
@@ -6,22 +7,23 @@ import java.util.function.Consumer
 enum class Operator(val word: String, val paramsLength: Int,
                     val action: (InterpretationState, List<String>, Int) -> Unit) {
     SUB("sub", 1, { state, params, lineNumber ->
-        if (state.procedures.containsKey(params[1]))
-            throw RedeclarationException("Procedure \"${params[1]}\" is already" +
-                    " declared at line ${state.procedures[params[1]]!!.lineNumber}")
+        if (state.procedures.containsKey(params[0]))
+            throw RedeclarationException("Procedure \"${params[0]}\" is already" +
+                    " declared at line ${state.procedures[params[0]]!!.lineNumber}")
 
-        state.procedures[params[1]] = Procedure(lineNumber, params[1])
-        if (params[1] == "main") {
+        state.procedures[params[0]] = Procedure(lineNumber, params[0])
+        if (params[0] == "main") {
             state.currentLine = lineNumber
         }
     }),
-    CALL("call", 1, { state, params, _ ->
-        state.callStack.push(state.procedures[params[1]])
+    CALL("call", 1, { state, params, returnNumber ->
+        state.callStack.push(Pair(state.procedures[params[0]]
+                ?: throw IllegalArgumentException(""), returnNumber)) // TODO
     }),
     SET("set", 2, { state, params, _ ->
-        state.variables[params[1]] = params[2].toInt()
+        state.variables[params[0]] = params[1].toInt()
     }),
     PRINT("print", 1, { state, params, _ ->
-        state.outputHandler.writeString("${params[1]} = ${state.variables[params[1]]}")
+        state.outputHandler.writeString("${params[0]} = ${state.variables[params[0]]}")
     })
 }
