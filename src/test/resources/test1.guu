@@ -1,0 +1,8 @@
+sub main
+  call kek
+    set f 5
+ print f
+
+
+sub kek
+set f 9
