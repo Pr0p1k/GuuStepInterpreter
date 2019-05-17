@@ -8,7 +8,7 @@ enum class Operator(val word: String, val paramsLength: Int,
     SUB("sub", 1, { state, params, lineNumber ->
         if (state.procedures.containsKey(params[1]))
             throw RedeclarationException("Procedure \"${params[1]}\" is already" +
-                    " declared at ${state.procedures[params[1]]!!.lineNumber}")
+                    " declared at line ${state.procedures[params[1]]!!.lineNumber}")
 
         state.procedures[params[1]] = Procedure(lineNumber, params[1])
         if (params[1] == "main") {

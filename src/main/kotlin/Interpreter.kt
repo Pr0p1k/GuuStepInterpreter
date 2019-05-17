@@ -11,16 +11,19 @@ lateinit var state: InterpretationState
  * If args.length is bigger than 1, then length - 1 args are passed
  * I/O processed via [InputHandler] and [OutputHandler]
  * If key -r is passed, the interpreter runs in normal (non-step) mode, so it simply completes
- * the Guu program. If program is recursive, [StackOverflowError] is expected
+ * the Guu program. If program is recursive, [StackOverflowError] is expected since there's no conditions
  * If key -g is passed, the program is going to run in GUI mode, but this is not implemented
  */
 fun main(args: Array<String>) {
     state = InterpretationState()
     initProgram(args)
-    val lines = readFile(args.last())
+    val lines = readFile(args.last()).toList()
+
     // Here goes hoisting of procedure declarations
     hoistDeclarations(lines)
 
+    // Here add trees into procedures
+    loadProcedureBodies(lines)
 }
 
 /**
@@ -36,7 +39,7 @@ fun initProgram(args: Array<String>) {
             throw IllegalArgumentException("Source code file not specified")
         }
         else -> {
-            // parse args
+            // TODO parse args
         }
     }
 
@@ -45,7 +48,7 @@ fun initProgram(args: Array<String>) {
 
 /**
  * Method to read the file.
- * @return Stream of lines from the file
+ * @return Sequence of lines from the file
  */
 fun readFile(fileName: String): Sequence<String> {
     val file = File(fileName)
@@ -72,18 +75,17 @@ fun parseOperator(word: String) = Operator.valueOf(word.toUpperCase())
  * and ads them into procedures map in the [state] via action in [Operator]
  */
 @Throws(MalformedLineException::class)
-fun hoistDeclarations(lines: Sequence<String>) {
+fun hoistDeclarations(lines: List<String>) {
     lines.forEachIndexed { i, line ->
         val words = getWords(line)
         if (words.isNotEmpty()) {
             val operator = parseOperator(words[0])
-            if (operator == Operator.SUB) {
-                if (words.size == 2) {
+            if (operator == Operator.SUB)
+                if (words.size == 2)
                     useOperator(operator, words, i + 1)
-                } else
+                else
                     throw MalformedLineException("Wrong amount of parameters" +
                             " for operator ${operator.word} at line ${i + 1}")
-            }
         }
     }
 }
@@ -95,3 +97,23 @@ fun hoistDeclarations(lines: Sequence<String>) {
  */
 fun useOperator(operator: Operator, params: List<String>,
                 lineNumber: Int) = operator.action(state, params, lineNumber)
+
+/**
+ * Loads procedure body's lines into tree
+ * Currently tree is not really needed, but if operator with block scopes will be implemented,
+ * tree will be good for performance
+ */
+fun loadProcedureBodies(lines: List<String>) {
+    val sortedList = state.procedures.entries.sortedBy {
+        it.value.lineNumber
+    }
+    // procedures don't have body's beginning and closing words,
+    // so I load strings into tree eagerly
+    sortedList.forEachIndexed { i, procedure ->
+        for (j in procedure.value.lineNumber until if (i != sortedList.lastIndex)
+            sortedList[i + 1].value.lineNumber - 1 else lines.size) {
+            if (lines[j].isNotEmpty())
+                procedure.value.tree.children.add(SyntaxTreeNode(lines[j]))
+        }
+    }
+}

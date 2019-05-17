@@ -2,5 +2,6 @@
  * Class represents procedure with it's declaration line number, name and tree of operations inside.
  * If functions are about to implement, they should be derived from this class
  */
-class Procedure(val lineNumber: Int, val name: String /*here should tree*/) : Word { // TODO should it actually be a Word?
+class Procedure(val lineNumber: Int, val name: String) : Word {
+    val tree = SyntaxTreeNode("sub $name")
 }
