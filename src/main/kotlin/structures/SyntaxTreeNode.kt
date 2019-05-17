@@ -1,3 +1,5 @@
+package structures
+
 /**
  * A node for syntax tree
  */

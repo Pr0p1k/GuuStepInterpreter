@@ -1,3 +1,8 @@
+import exceptions.MalformedLineException
+import io.InputHandler
+import io.OutputHandler
+import structures.Operator
+import structures.SyntaxTreeNode
 import java.io.BufferedReader
 import java.io.File
 import java.io.FileReader
@@ -26,7 +31,7 @@ fun main(args: Array<String>) {
     loadProcedureBodies(lines)
 
     Operator.CALL.action(state, listOf("main"), state.procedures["main"]?.lineNumber
-            ?: throw NoSuchMethodError("Procedure \"main\" is not declared")
+            ?: throw NoSuchMethodError("structures.Procedure \"main\" is not declared")
     )
     var localLineNumber = 0
     stack@ while (state.callStack.isNotEmpty()) {
@@ -104,18 +109,10 @@ fun hoistDeclarations(lines: List<String>) {
                     operator.action(state, words.subList(1, words.size), i + 1)
                 else
                     throw MalformedLineException("Wrong amount of parameters" +
-                            " for operator ${operator.word} at line ${i + 1}")
+                            " for operator ${operator.word}")
         }
     }
 }
-
-///**
-// * Performs actions for that operator (adds to procedures list, variables list, etc.)
-// * @param operator [Operator] itself
-// * @param lineNumber number to add in the map of procedures
-// */
-//fun useOperator(operator: Operator, params: List<String>,
-//                lineNumber: Int) = operator.action(state, params, lineNumber)
 
 /**
  * Loads procedure body's lines into tree

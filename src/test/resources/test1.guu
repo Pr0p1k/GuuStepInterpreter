@@ -6,7 +6,10 @@ call lolk
   call kek
     set f 5
  print f
- print g
+ inc f
+ print f
+ read f
+ print f
  print k
 
 
