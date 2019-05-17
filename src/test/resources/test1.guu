@@ -1,4 +1,7 @@
-sub main
+sub lol
+print heh
+
+    sub main
   call kek
     set f 5
  print f
@@ -6,3 +9,4 @@ sub main
 
 sub kek
 set f 9
+set k 12

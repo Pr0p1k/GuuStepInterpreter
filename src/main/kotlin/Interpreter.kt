@@ -3,33 +3,33 @@ import java.io.File
 import java.io.FileReader
 import kotlin.IllegalArgumentException
 
-
-lateinit var inputHandler: InputHandler
-lateinit var outputHandler: OutputHandler
-lateinit var interpretationState: InterpretationState
+lateinit var state: InterpretationState
 
 /**
  * Here we go
  * I suppose that we can pass only one file with code to interpreter.
  * If args.length is bigger than 1, then length - 1 args are passed
  * I/O processed via [InputHandler] and [OutputHandler]
- * If key -g is passed. The program is going to run in GUI mode, but this is not implemented
+ * If key -g is passed, the program is going to run in GUI mode, but this is not implemented
  */
 fun main(args: Array<String>) {
+    state = InterpretationState()
     initProgram(args)
     val lines = readFile(args.last())
     lines.forEachIndexed { i, line ->
+        // here should be only hoisting
         val words = getWords(line)
         if (words.isNotEmpty()) {
             val operator = parseOperator(words[0])
-            if (operator.paramsNumber == words.size - 1) {
-                // TODO decide an action
+            if (operator.paramsLength == words.size - 1) {
+                addOperator(operator, words, i + 1)
             } else {
                 // TODO throw smth
             }
 
         }
     }
+
 }
 
 /**
@@ -38,8 +38,8 @@ fun main(args: Array<String>) {
 fun initProgram(args: Array<String>) {
     when (args.size) {
         1 -> {
-            inputHandler = InputHandler()
-            outputHandler = OutputHandler()
+            state.inputHandler = InputHandler()
+            state.outputHandler = OutputHandler()
         }
         0 -> {
             throw IllegalArgumentException("Source code file not specified")
@@ -71,13 +71,16 @@ fun getWords(line: String): List<String> = line
 
 /**
  * Parse an operator from string (let "sub" be called an operator too)
- * @return
+ * @return [Operator] object with name(command) and params number for the operator
  */
 @Throws(IllegalArgumentException::class)
-fun parseOperator(word: String): Operator {
-    when (word) {
-        "sub", "print", "call" -> return Operator(word, 1)
-        "set" -> return Operator(word, 2)
-        else -> throw IllegalArgumentException("Unknown operator \"$word\"")
-    }
+fun parseOperator(word: String) = Operator.valueOf(word.toUpperCase())
+
+/**
+ * Performs actions for that operator (adds to procedures list, variables list, etc.)
+ * @param operator [Operator] itself
+ * @param lineNumber number to add in the map of procedures
+ */
+fun addOperator(operator: Operator, params: List<String>, lineNumber: Int) {
+    operator.action(state, params, lineNumber)
 }
