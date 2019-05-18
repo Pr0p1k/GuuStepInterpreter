@@ -44,7 +44,7 @@ enum class Operator(val word: String, private val paramsLength: Int) {
             checkParamsLength(params)
             state.outputHandler.writeString(
                     "${params[0]} = ${state.variables[params[0]]?.value ?: ""}",
-                    newLine = true, color = Colors.BLUE)
+                    newLine = true, color = Color.BLUE)
         }
     },
 

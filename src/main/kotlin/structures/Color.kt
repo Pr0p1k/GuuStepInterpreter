@@ -1,6 +1,6 @@
 package structures
 
-enum class Colors(val number: Int) {
+enum class Color(val number: Int) {
     DEFAULT(0),
     BLACK(30),
     RED(31),

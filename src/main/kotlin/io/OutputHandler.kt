@@ -1,13 +1,13 @@
 package io
 
-import structures.Colors
+import structures.Color
 
 /**
  * Processes the output of the interpreter. Default mode is console
  */
 class OutputHandler(override val guiMode: Boolean = false) : Handler {
 
-    fun writeString(output: String, level: Int = 0, newLine: Boolean = false, color: Colors = Colors.DEFAULT) {
+    fun writeString(output: String, level: Int = 0, newLine: Boolean = false, color: Color = Color.DEFAULT) {
         if (!guiMode) {
             for (i in 0 until level) print(" ")
             print("\u001B[${color.number}m$output\u001B[0m")

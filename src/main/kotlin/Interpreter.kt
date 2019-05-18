@@ -1,7 +1,7 @@
 import exceptions.MalformedLineException
 import io.InputHandler
 import io.OutputHandler
-import structures.Colors
+import structures.Color
 import structures.Command
 import structures.Operator
 import structures.SyntaxTreeNode
@@ -164,8 +164,8 @@ fun startInterpreter() {
 fun waitForCommand(line: String, printLine: Boolean = true) {
     if (state.stepMode && state.callStack.peek().stepIn) {
         if (printLine) state.outputHandler.writeString(line,
-                state.callStack.size - 1, true, Colors.MAGENTA)
-        state.outputHandler.writeString("Input command: ", color = Colors.GREEN)
+                state.callStack.size - 1, true, Color.MAGENTA)
+        state.outputHandler.writeString("Input command: ", color = Color.GREEN)
         val command = Command.getCommand(state.inputHandler.getDebuggerInput())
         if (command != null) {
             if (!command.action(state)) waitForCommand(line, false)

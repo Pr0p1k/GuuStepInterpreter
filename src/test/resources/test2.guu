@@ -1,0 +1,16 @@
+
+
+
+
+
+    sub main
+
+
+    set k   9
+    print k
+
+
+
+
+    set k       13
+    print k

@@ -1,0 +1,4 @@
+sub main
+print k
+set k -4
+sub k

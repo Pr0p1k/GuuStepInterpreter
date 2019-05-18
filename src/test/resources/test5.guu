@@ -1,0 +1,7 @@
+inc 4
+sub eheh
+call theres_no_main
+
+
+                        sub theres_no_main
+                 print 4
