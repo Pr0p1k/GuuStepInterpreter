@@ -1,6 +1,8 @@
 import exceptions.MalformedLineException
 import io.InputHandler
 import io.OutputHandler
+import structures.Colors
+import structures.Command
 import structures.Operator
 import structures.SyntaxTreeNode
 import java.io.BufferedReader
@@ -21,39 +23,22 @@ lateinit var state: InterpretationState
  */
 fun main(args: Array<String>) {
     state = InterpretationState()
-    initProgram(args)
+    initInterpreter(args)
     val lines = readFile(args.last()).toList()
-
     // Here goes hoisting of procedure declarations
     hoistDeclarations(lines)
-
     // Here add trees into procedures
     loadProcedureBodies(lines)
-
-    Operator.CALL.action(state, listOf("main"), state.procedures["main"]?.lineNumber
-            ?: throw NoSuchMethodError("structures.Procedure \"main\" is not declared")
-    )
-    var localLineNumber = 0
-    stack@ while (state.callStack.isNotEmpty()) {
-        val procedure = state.callStack.peek().first
-        for (i in localLineNumber until procedure.tree.children.size) {
-            val words = getWords(procedure.tree.children[i].value)
-            val operator = parseOperator(words[0])
-            operator.action(state, words.subList(1, words.size), procedure.lineNumber + i + 1)
-            if (operator == Operator.CALL) {
-                continue@stack
-            }
-        }
-        if (state.callStack.size > 1)
-            localLineNumber = state.callStack.pop().second - state.callStack.peek().first.lineNumber
-        else state.callStack.pop()
-    }
+    // put main into stack
+    initProgram()
+    // run interpretation
+    startInterpreter()
 }
 
 /**
  * Reads args and initializes IO or throws exceptions
  */
-fun initProgram(args: Array<String>) {
+fun initInterpreter(args: Array<String>) {
     when (args.size) {
         1 -> {
             state.inputHandler = InputHandler()
@@ -116,7 +101,7 @@ fun hoistDeclarations(lines: List<String>) {
 
 /**
  * Loads procedure body's lines into tree
- * Currently tree is not really needed, but if operator with block scopes will be implemented,
+ * Currently tree is not really needed, but if operators with block scopes will be implemented,
  * tree will be good for performance
  */
 fun loadProcedureBodies(lines: List<String>) {
@@ -130,6 +115,61 @@ fun loadProcedureBodies(lines: List<String>) {
             sortedList[i + 1].value.lineNumber - 1 else lines.size) {
             if (lines[j].isNotEmpty())
                 procedure.value.tree.children.add(SyntaxTreeNode(lines[j]))
+        }
+    }
+}
+
+/**
+ * Loads main procedure into stack or
+ * @throws NoSuchMethodError
+ */
+@Throws(NoSuchMethodError::class)
+fun initProgram() {
+    Operator.CALL.action(state, listOf("main"), state.procedures["main"]?.lineNumber
+            ?: throw NoSuchMethodError("structures.Procedure \"main\" is not declared")
+    )
+}
+
+/**
+ * Starts interpreter at main procedure
+ */
+fun startInterpreter() {
+    var localLineNumber = 0
+    stack@ while (state.callStack.isNotEmpty()) {
+        val procedure = state.callStack.peek().procedure
+        for (i in localLineNumber until procedure.tree.children.size) {
+            val words = getWords(procedure.tree.children[i].value)
+            val operator = parseOperator(words[0])
+            // here it checks whether to continue or wait for user's input
+            waitForCommand("${procedure.lineNumber + i}: " +
+                    procedure.tree.children[i].value.trimStart())
+            operator.action(state, words.subList(1, words.size), procedure.lineNumber + i + 1)
+            if (operator == Operator.CALL) {
+                continue@stack
+            }
+        }
+        if (state.callStack.size > 1)
+            localLineNumber = state.callStack.pop()
+                    .returnLineNumber - state.callStack.peek().procedure.lineNumber
+        else state.callStack.pop()
+    }
+}
+
+/**
+ * Waits for user to input command or continues if pass-through mode is enabled
+ */
+fun waitForCommand(line: String, printLine: Boolean = true) {
+    if (state.stepMode && state.callStack.peek().stepIn) {
+        if (printLine) state.outputHandler.writeString(line,
+                state.callStack.size - 1, true, Colors.MAGENTA)
+        state.outputHandler.writeString("Input command: ", color = Colors.GREEN)
+        val command = Command.getCommand(state.inputHandler.getDebuggerInput())
+        if (command != null) {
+            if (!command.action(state)) waitForCommand(line, false)
+        } else {
+            state.outputHandler.writeString(
+                    "Unknown command, type \"help\" for commands", newLine = true)
+            waitForCommand(line, false)
         }
     }
 }

@@ -1,0 +1,15 @@
+<component name="ArtifactManager">
+  <artifact name="GuuStepInterpreter:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/GuuStepInterpreter_jar</output-path>
+    <root id="root">
+      <element id="archive" name="GuuStepInterpreter.jar">
+        <element id="module-output" name="GuuStepInterpreter_main" />
+      </element>
+      <element id="library" level="project" name="Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:1.2.51" />
+      <element id="library" level="project" name="Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.2.51" />
+      <element id="library" level="project" name="Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.2.51" />
+      <element id="library" level="project" name="Gradle: org.jetbrains.kotlin:kotlin-stdlib:1.2.51" />
+      <element id="library" level="project" name="Gradle: org.jetbrains:annotations:13.0" />
+    </root>
+  </artifact>
+</component>

@@ -1,0 +1,6 @@
+Manifest-Version: 1.0
+Class-Path: kotlin-stdlib-common-1.2.51.jar kotlin-stdlib-jdk8-1.2.51.
+ jar kotlin-stdlib-jdk7-1.2.51.jar kotlin-stdlib-1.2.51.jar annotation
+ s-13.0.jar
+Main-Class: InterpreterKt
+

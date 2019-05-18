@@ -1,4 +1,3 @@
 package exceptions
 
-class MalformedLineException(override val message: String = ""): Exception(message) {
-}
+class MalformedLineException(override val message: String = ""): Exception(message)

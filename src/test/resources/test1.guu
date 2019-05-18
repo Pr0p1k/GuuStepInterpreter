@@ -1,12 +1,12 @@
 sub lol
 print heh
-call lolk
+call heh
 
     sub main
   call kek
     set f 5
  print f
- inc f
+ inc
  print f
  read f
  print f
@@ -17,5 +17,5 @@ sub kek
 set f 9
 set k 12
 call lol
-sub lolk
+sub heh
 print k
