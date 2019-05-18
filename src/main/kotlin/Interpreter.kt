@@ -23,11 +23,13 @@ lateinit var state: InterpretationState
  */
 fun main(args: Array<String>) {
     state = InterpretationState()
+    // read args and init I/O and mode
     initInterpreter(args)
+    // read Guu file (file extension is not constrained)
     val lines = readFile(args.last()).toList()
-    // Here goes hoisting of procedure declarations
+    // hoist procedure declarations
     hoistDeclarations(lines)
-    // Here add trees into procedures
+    // add trees into procedures
     loadProcedureBodies(lines)
     // put main into stack
     initProgram()
@@ -77,7 +79,8 @@ fun getWords(line: String): List<String> = line
  * @return [Operator] object with name(command) and params number for the operator
  */
 @Throws(IllegalArgumentException::class)
-fun parseOperator(word: String) = Operator.valueOf(word.toUpperCase())
+fun parseOperator(word: String) =
+        Operator.getOperator(word) ?: throw IllegalArgumentException("Operator \"$word\" not found")
 
 /**
  * Performs hoisting of procedure declarations

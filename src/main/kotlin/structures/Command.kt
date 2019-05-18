@@ -53,6 +53,20 @@ enum class Command(val word: String, val description: String) : Word {
             }
             return false
         }
+    },
+
+    RUN("run", "run program without debugger") {
+        override fun action(state: InterpretationState): Boolean {
+            state.stepMode = false
+            return true
+        }
+    },
+
+    EXIT("exit", "exit interpreter") {
+        override fun action(state: InterpretationState): Boolean {
+            System.exit(0)
+            return true
+        }
     };
 
 
@@ -64,7 +78,6 @@ enum class Command(val word: String, val description: String) : Word {
 
     companion object {
         private val entries = HashMap<String, Command>()
-        private var linesLeft = 0
 
         init {
             for (command in values())
@@ -73,6 +86,7 @@ enum class Command(val word: String, val description: String) : Word {
 
         /**
          * Get command by it's word
+         * @return [Command] or null if there's no such word for command
          */
         fun getCommand(word: String): Command? = entries[word]
     }

@@ -6,7 +6,7 @@ call heh
   call kek
     set f 5
  print f
- inc
+ inc f
  print f
  read f
  print f

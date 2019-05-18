@@ -4,6 +4,7 @@ import InterpretationState
 import exceptions.MalformedLineException
 import exceptions.ProcedureNotFoundException
 import exceptions.RedeclarationException
+import java.util.HashMap
 
 /**
  * Represents all the operators of the language
@@ -71,5 +72,20 @@ enum class Operator(val word: String, private val paramsLength: Int) {
     fun checkParamsLength(params: List<String>) {
         if (params.size != paramsLength)
             throw MalformedLineException("Wrong amount of parameters for operator $word")
+    }
+
+    companion object {
+        private val entries = HashMap<String, Operator>()
+
+        init {
+            for (operator in values())
+                entries[operator.word] = operator
+        }
+
+        /**
+         * Get operator by it's word
+         * @return [Operator] or null if there's no such word for operator
+         */
+        fun getOperator(word: String): Operator? = entries[word]
     }
 }
