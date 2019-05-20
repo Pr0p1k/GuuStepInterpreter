@@ -1,11 +1,7 @@
 import exceptions.MalformedLineException
-import io.InputHandler
-import io.OutputHandler
+import io.*
 import structures.*
-import java.io.BufferedReader
-import java.io.File
-import java.io.FileReader
-import java.io.IOException
+import java.io.*
 import kotlin.IllegalArgumentException
 import kotlin.system.exitProcess
 
@@ -27,7 +23,7 @@ fun main(args: Array<String>) {
         // read args and init I/O and mode
         initInterpreter(args)
         // read Guu file (file extension is not constrained)
-        val lines = readFile(args.last()).toList()
+        val lines = readFile(args.last())
         // hoist procedure declarations
         hoistDeclarations(lines)
         // add trees into procedures
@@ -54,7 +50,7 @@ fun main(args: Array<String>) {
 }
 
 /**
- * Reads args and initializes IO or throws [IllegalArgumentException]
+ * Reads args and initializes IO or throws [IllegalArgumentException] if no args passed
  */
 fun initInterpreter(args: Array<String>) {
     var gui = false
@@ -71,8 +67,8 @@ fun initInterpreter(args: Array<String>) {
                 }
         }
     }
-    state.inputHandler = InputHandler(gui)
-    state.outputHandler = OutputHandler(gui)
+    state.inputHandler = if (gui) GUIInputHandler() else ConsoleInputHandler()
+    state.outputHandler = if (gui) GUIOutputHandler() else ConsoleOutputHandler()
 }
 
 
@@ -80,10 +76,9 @@ fun initInterpreter(args: Array<String>) {
  * Method to read the file.
  * @return Sequence of lines from the file
  */
-fun readFile(fileName: String): Sequence<String> {
+fun readFile(fileName: String): List<String> {
     val file = File(fileName)
-    val reader = BufferedReader(FileReader(file))
-    return reader.lineSequence()
+    return BufferedReader(FileReader(file)).readLines()
 }
 
 /**

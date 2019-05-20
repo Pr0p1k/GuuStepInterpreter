@@ -2,10 +2,10 @@
 JetBrains test assignment for Coroutines debugger
 
 # Build
-Execute *gradle jar* task. It will create **build/libs/guu-1.0.jar**
+Run *gradle jar* task. It will create **build/libs/guu-1.0.jar**
 
 # Run
-Execute *java -jar build/libs/guu-1.0.jar \<args\>* task to launch
+Run *java -jar build/libs/guu-1.0.jar \<args\>* task to launch
 Some example Guu files are in src/test/resources
 Available args:
 * -r - run without stops (straight execution of guu)
