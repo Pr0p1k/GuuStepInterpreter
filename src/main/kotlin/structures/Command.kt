@@ -2,6 +2,7 @@ package structures
 
 import InterpretationState
 import java.util.HashMap
+import kotlin.system.exitProcess
 
 /**
  * Represents command of debugger.
@@ -25,7 +26,10 @@ enum class Command(val word: String, val description: String) : Word {
     TRACE("trace", "print call stack") {
         override fun action(state: InterpretationState): Boolean {
             state.callStack.forEachIndexed { i, call ->
-                state.outputHandler.writeString(call.procedure.name, i, true)
+                val caller = state.callStack[i]
+                state.outputHandler.writeString(
+                        "${caller.returnLineNumber}:" +
+                                " ${call.procedure.name}", i, true)
             }
             return false
         }
@@ -33,7 +37,6 @@ enum class Command(val word: String, val description: String) : Word {
 
     VAR("var", "print all existing variables with their values") {
         override fun action(state: InterpretationState): Boolean {
-            state.outputHandler.writeString("Variables:", newLine = true)
             state.variables.forEach {
                 state.outputHandler.writeString(" ${it.key} = ${it.value.value}", newLine = true)
             }
@@ -64,8 +67,7 @@ enum class Command(val word: String, val description: String) : Word {
 
     EXIT("exit", "exit interpreter") {
         override fun action(state: InterpretationState): Boolean {
-            System.exit(0)
-            return true
+            exitProcess(0)
         }
     };
 

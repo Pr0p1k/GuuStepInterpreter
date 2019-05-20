@@ -13,37 +13,38 @@ import java.util.HashMap
  */
 enum class Operator(val word: String, private val paramsLength: Int) {
     SUB("sub", 1) {
-        override fun action(state: InterpretationState, params: List<String>, lineNumber: Int) {
+        override fun action(state: InterpretationState, params: List<Param>, lineNumber: Int) {
+            val name = params[0].value
             checkParamsLength(params)
-            if (state.procedures.containsKey(params[0]))
-                throw RedeclarationException("structures.Procedure \"${params[0]}\" is already" +
-                        " declared at line ${state.procedures[params[0]]!!.lineNumber}")
-            state.procedures[params[0]] = Procedure(lineNumber, params[0])
+            if (state.procedures.containsKey(name))
+                throw RedeclarationException("Procedure \"$name\" is already" +
+                        " declared at line ${state.procedures[name]!!.lineNumber}")
+            state.procedures[params[0].value] = Procedure(lineNumber, params[0].value)
         }
     },
 
     CALL("call", 1) {
-        override fun action(state: InterpretationState, params: List<String>, lineNumber: Int) {
+        override fun action(state: InterpretationState, params: List<Param>, lineNumber: Int) {
             checkParamsLength(params)
-            state.callStack.push(StackFrame(state.procedures[params[0]]
-                    ?: throw ProcedureNotFoundException(params[0]), lineNumber,
+            state.callStack.push(StackFrame(state.procedures[params[0].value]
+                    ?: throw ProcedureNotFoundException(params[0].value, lineNumber), lineNumber,
                     state.stepIn))
         }
     },
 
     SET("set", 2) {
-        override fun action(state: InterpretationState, params: List<String>, lineNumber: Int) {
+        override fun action(state: InterpretationState, params: List<Param>, lineNumber: Int) {
             checkParamsLength(params)
-            state.variables[params[0]] = Value(params[1].toInt())
+            state.variables[params[0].value] = Value(params[1].value.toInt())
         }
     },
 
-    // If variable is not specified, write empty string like in bash
+    // If variable is not specified, write empty string like bash does
     PRINT("print", 1) {
-        override fun action(state: InterpretationState, params: List<String>, lineNumber: Int) {
+        override fun action(state: InterpretationState, params: List<Param>, lineNumber: Int) {
             checkParamsLength(params)
             state.outputHandler.writeString(
-                    "${params[0]} = ${state.variables[params[0]]?.value ?: ""}",
+                    "${params[0].value} = ${state.variables[params[0].value]?.value ?: ""}",
                     newLine = true, color = Color.BLUE)
         }
     },
@@ -51,25 +52,25 @@ enum class Operator(val word: String, private val paramsLength: Int) {
     // here your custom operators can be declared
 
     INC("inc", 1) {
-        override fun action(state: InterpretationState, params: List<String>, lineNumber: Int) {
+        override fun action(state: InterpretationState, params: List<Param>, lineNumber: Int) {
             checkParamsLength(params)
             // Let's be like JS and work normally with an undeclared variable
-            if (!state.variables.containsKey(params[0]))
-                state.variables[params[0]] = Value(1)
-            state.variables[params[0]]!!.value++
+            if (!state.variables.containsKey(params[0].value))
+                state.variables[params[0].value] = Value(1)
+            state.variables[params[0].value]!!.value++
         }
     },
 
     READ("read", 1) {
-        override fun action(state: InterpretationState, params: List<String>, lineNumber: Int) {
+        override fun action(state: InterpretationState, params: List<Param>, lineNumber: Int) {
             checkParamsLength(params)
-            state.variables[params[0]] = Value(state.inputHandler.getDebuggerInput().toInt())
+            state.variables[params[0].value] = Value(state.inputHandler.getDebuggerInput().toInt())
         }
     };
 
-    abstract fun action(state: InterpretationState, params: List<String>, lineNumber: Int)
+    abstract fun action(state: InterpretationState, params: List<Param>, lineNumber: Int)
 
-    fun checkParamsLength(params: List<String>) {
+    fun checkParamsLength(params: List<Param>) {
         if (params.size != paramsLength)
             throw MalformedLineException("Wrong amount of parameters for operator $word")
     }

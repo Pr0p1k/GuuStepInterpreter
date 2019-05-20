@@ -1,14 +1,13 @@
 import exceptions.MalformedLineException
 import io.InputHandler
 import io.OutputHandler
-import structures.Color
-import structures.Command
-import structures.Operator
-import structures.SyntaxTreeNode
+import structures.*
 import java.io.BufferedReader
 import java.io.File
 import java.io.FileReader
+import java.io.IOException
 import kotlin.IllegalArgumentException
+import kotlin.system.exitProcess
 
 lateinit var state: InterpretationState
 
@@ -18,42 +17,61 @@ lateinit var state: InterpretationState
  * If args.length is bigger than 1, then length - 1 args are passed
  * I/O processed via [InputHandler] and [OutputHandler]
  * If key -r is passed, the interpreter runs in normal (non-step) mode, so it simply completes
- * the Guu program. If program is recursive, [StackOverflowError] is expected since there's no conditions
+ * the Guu program. If program has recursion, loop is expected since there's no conditions
  * If key -g is passed, the program is going to run in GUI mode, but this is not implemented
  */
 fun main(args: Array<String>) {
     state = InterpretationState()
-    // read args and init I/O and mode
-    initInterpreter(args)
-    // read Guu file (file extension is not constrained)
-    val lines = readFile(args.last()).toList()
-    // hoist procedure declarations
-    hoistDeclarations(lines)
-    // add trees into procedures
-    loadProcedureBodies(lines)
-    // put main into stack
-    initProgram()
-    // run interpretation
-    startInterpreter()
+    try {
+        // read args and init I/O and mode
+        initInterpreter(args)
+        // read Guu file (file extension is not constrained)
+        val lines = readFile(args.last()).toList()
+        // hoist procedure declarations
+        hoistDeclarations(lines)
+        // add trees into procedures
+        loadProcedureBodies(lines)      // тут я мог не загружать строки в деревья процедурам,
+        // а читать их на ходу, но это задел на потенциальную возможность ветвления
+        // put main into stack
+        initProgram()
+        // run interpretation
+        if (state.stepMode)
+            state.outputHandler.writeString(
+                    "Type help for the params of commands",
+                    color = Color.GREEN, newLine = true)
+        startInterpreter()
+    } catch (e: IllegalArgumentException) {
+        // IllegalArgumentException may be thrown when output is not yet initialized
+        System.err.println(e.message)
+        exitProcess(1)
+    } catch (e: IOException) {
+        System.err.println(e.message)
+        exitProcess(1)
+    } catch (e: Throwable) {
+        state.outputHandler.writeString(e.message ?: "Error occurred", color = Color.RED)
+    }
 }
 
 /**
- * Reads args and initializes IO or throws exceptions
+ * Reads args and initializes IO or throws [IllegalArgumentException]
  */
 fun initInterpreter(args: Array<String>) {
+    var gui = false
     when (args.size) {
-        1 -> {
-            state.inputHandler = InputHandler()
-            state.outputHandler = OutputHandler()
-        }
-        0 -> {
-            throw IllegalArgumentException("Source code file not specified")
-        }
-        else -> {
-            // TODO parse args
+        0 -> throw IllegalArgumentException("Source code file not specified")
+        else -> for (i in 0 until args.lastIndex) {
+            if (args[i].startsWith("-"))
+                args[i].removePrefix("-").forEach {
+                    when (it) {
+                        'r' -> state.stepMode = false
+                        'g' -> gui = true
+                        else -> throw IllegalArgumentException("Unknown option \"$it\"")
+                    }
+                }
         }
     }
-
+    state.inputHandler = InputHandler(gui)
+    state.outputHandler = OutputHandler(gui)
 }
 
 
@@ -78,9 +96,9 @@ fun getWords(line: String): List<String> = line
  * Parse an operator from string (let "sub" be called an operator too)
  * @return [Operator] object with name(command) and params number for the operator
  */
-@Throws(IllegalArgumentException::class)
+@Throws(MalformedLineException::class)
 fun parseOperator(word: String) =
-        Operator.getOperator(word) ?: throw IllegalArgumentException("Operator \"$word\" not found")
+        Operator.getOperator(word) ?: throw MalformedLineException("Illegal operator \"$word\"")
 
 /**
  * Performs hoisting of procedure declarations
@@ -94,7 +112,9 @@ fun hoistDeclarations(lines: List<String>) {
             val operator = parseOperator(words[0])
             if (operator == Operator.SUB)
                 if (words.size == 2)
-                    operator.action(state, words.subList(1, words.size), i + 1)
+                    operator.action(state,
+                            words.subList(1, words.size).map { Param(it) },
+                            i + 1)
                 else
                     throw MalformedLineException("Wrong amount of parameters" +
                             " for operator ${operator.word}")
@@ -103,21 +123,27 @@ fun hoistDeclarations(lines: List<String>) {
 }
 
 /**
- * Loads procedure body's lines into tree
- * Currently tree is not really needed, but if operators with block scopes will be implemented,
- * tree will be good for performance
+ * Loads a procedure body's lines into tree
+ * Currently tree is not really needed, but if operators with block scopes are implemented,
+ * tree would be good for performance
  */
 fun loadProcedureBodies(lines: List<String>) {
     val sortedList = state.procedures.entries.sortedBy {
         it.value.lineNumber
     }
-    // procedures don't have body's beginning and closing words,
-    // so I load strings into tree eagerly
     sortedList.forEachIndexed { i, procedure ->
         for (j in procedure.value.lineNumber until if (i != sortedList.lastIndex)
             sortedList[i + 1].value.lineNumber - 1 else lines.size) {
-            if (lines[j].isNotEmpty())
-                procedure.value.tree.children.add(SyntaxTreeNode(lines[j]))
+            if (lines[j].isNotEmpty()) {
+                val words = getWords(lines[j])
+                val operator = Operator.getOperator(words[0])!!
+                procedure.value
+                        .tree.children.add(
+                        SyntaxTreeNode(
+                                Line(operator,
+                                        words.map { Param(it) }.subList(1, words.size)
+                                )))
+            }
         }
     }
 }
@@ -128,10 +154,16 @@ fun loadProcedureBodies(lines: List<String>) {
  */
 @Throws(NoSuchMethodError::class)
 fun initProgram() {
-    Operator.CALL.action(state, listOf("main"), state.procedures["main"]?.lineNumber
+    Operator.CALL.action(state, listOf(Param("main")), state.procedures["main"]?.lineNumber
             ?: throw NoSuchMethodError("structures.Procedure \"main\" is not declared")
     )
 }
+
+/**
+ * Builds string from [Line] with whitespaces as separators
+ */
+fun normalizeLine(line: Line): String =
+        "${line.operator.word} " + line.params.map { it.value }.reduce { acc, s -> "$acc $s" }
 
 /**
  * Starts interpreter at main procedure
@@ -141,12 +173,14 @@ fun startInterpreter() {
     stack@ while (state.callStack.isNotEmpty()) {
         val procedure = state.callStack.peek().procedure
         for (i in localLineNumber until procedure.tree.children.size) {
-            val words = getWords(procedure.tree.children[i].value)
-            val operator = parseOperator(words[0])
+            val operator = procedure.tree.children[i].value.operator
+            val line = normalizeLine(procedure.tree.children[i].value)
             // here it checks whether to continue or wait for user's input
-            waitForCommand("${procedure.lineNumber + i}: " +
-                    procedure.tree.children[i].value.trimStart())
-            operator.action(state, words.subList(1, words.size), procedure.lineNumber + i + 1)
+            if (state.stepMode)
+                waitForCommand("${procedure.name}: ${procedure.lineNumber + i}: " + line)
+            operator.action(state,
+                    procedure.tree.children[i].value.params,
+                    procedure.lineNumber + i + 1)
             if (operator == Operator.CALL) {
                 continue@stack
             }
@@ -162,10 +196,12 @@ fun startInterpreter() {
  * Waits for user to input command or continues if pass-through mode is enabled
  */
 fun waitForCommand(line: String, printLine: Boolean = true) {
-    if (state.stepMode && state.callStack.peek().stepIn) {
+    if (state.callStack.peek().stepIn) {
         if (printLine) state.outputHandler.writeString(line,
                 state.callStack.size - 1, true, Color.MAGENTA)
+
         state.outputHandler.writeString("Input command: ", color = Color.GREEN)
+
         val command = Command.getCommand(state.inputHandler.getDebuggerInput())
         if (command != null) {
             if (!command.action(state)) waitForCommand(line, false)

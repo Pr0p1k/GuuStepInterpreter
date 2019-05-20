@@ -1,8 +1,7 @@
-import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeAll
-import org.opentest4j.AssertionFailedError
-import java.lang.Exception
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.CsvSource
 
 internal class InterpreterKtTest {
 
@@ -16,9 +15,10 @@ internal class InterpreterKtTest {
 
     /**
      * Make it look like interpreter is started with args
+     * only file name should be passed
      * @param args args with which it's called
      */
-    fun loadState(args: Array<String>) {
+    private fun loadState(args: Array<String>) {
         state.variables.clear()
         state.procedures.clear()
         initInterpreter(args)
@@ -27,23 +27,17 @@ internal class InterpreterKtTest {
     }
 
     /**
-     * Check whether it finds main procedure
+     * Checks whether interpreter finds main procedure
      */
-    @Test
-    fun initializeProgram() {
-        loadState(arrayOf("src/test/resources/test1.guu"))
-        assertDoesNotThrow(::initProgram)
-
-        loadState(arrayOf("src/test/resources/test2.guu"))
-        assertDoesNotThrow(::initProgram)
-
-        loadState(arrayOf("src/test/resources/test3.guu"))
-        assertThrows(NoSuchMethodError::class.java, ::initProgram)
-
-        loadState(arrayOf("src/test/resources/test4.guu"))
-        assertDoesNotThrow(::initProgram)
-
-        loadState(arrayOf("src/test/resources/test5.guu"))
-        assertThrows(NoSuchMethodError::class.java, ::initProgram)
+    @ParameterizedTest
+    @CsvSource("src/test/resources/test1.guu, false",
+            "src/test/resources/test2.guu, false",
+            "src/test/resources/test3.guu, true",
+            "src/test/resources/test4.guu, false",
+            "src/test/resources/test5.guu, true")
+    fun initializeProgram(file: String, shouldThrow: Boolean) {
+        loadState(arrayOf(file))
+        if (shouldThrow) assertThrows(NoSuchMethodError::class.java, ::initProgram)
+        else assertDoesNotThrow(::initProgram)
     }
 }

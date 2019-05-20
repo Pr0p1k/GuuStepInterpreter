@@ -1,3 +1,4 @@
 package exceptions
 
-class ProcedureNotFoundException(override val message: String?) : Exception(message)
+class ProcedureNotFoundException(val name: String, line: Int) :
+        Exception("Undefined procedure \"$name\" called at line $line")
