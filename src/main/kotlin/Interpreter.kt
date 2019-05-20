@@ -18,7 +18,7 @@ lateinit var state: InterpretationState
  * I/O processed via [InputHandler] and [OutputHandler]
  * If option -r is passed, the interpreter runs in normal (non-step) mode, so it simply completes
  * the Guu program. If program has recursion, loop is expected since there's no conditions
- * (and program will eventually die when callstack exceeds Integer.maxValue)
+ * (and program will eventually die when call stack exceeds Integer.maxValue)
  * If option -g is passed, the program is going to run in GUI mode, but this is not implemented
  */
 fun main(args: Array<String>) {
@@ -155,9 +155,9 @@ fun loadProcedureBodies(lines: List<String>) {
  */
 @Throws(NoSuchMethodError::class)
 fun initProgram() {
-    Operator.CALL.action(state, listOf(Param("main")), state.procedures["main"]?.lineNumber
-            ?: throw NoSuchMethodError("structures.Procedure \"main\" is not declared")
-    )
+    if (!state.procedures.containsKey("main"))
+        throw NoSuchMethodError("structures.Procedure \"main\" is not declared")
+    Operator.CALL.action(state, listOf(Param("main")), 0)
 }
 
 /**

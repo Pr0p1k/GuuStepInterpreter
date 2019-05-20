@@ -64,7 +64,7 @@ enum class Operator(val word: String, private val paramsLength: Int) {
     READ("read", 1) {
         override fun action(state: InterpretationState, params: List<Param>, lineNumber: Int) {
             checkParamsLength(params)
-            state.variables[params[0].value] = Value(state.inputHandler.getDebuggerInput().toInt())
+            state.variables[params[0].value] = Value(state.inputHandler.getInput().toInt())
         }
     };
 

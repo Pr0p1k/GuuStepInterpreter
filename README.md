@@ -1,6 +1,28 @@
 # GuuStepInterpreter
 JetBrains test assignment for Coroutines debugger
 
+# Build
+Execute *gradle jar* task. It will create **build/libs/guu-1.0.jar**
+
+# Run
+Execute *java -jar build/libs/guu-1.0.jar \<args\>* task to launch
+Some example Guu files are in src/test/resources
+Available args:
+* -r - run without stops (straight execution of guu)
+* -g - run with GUI. **Not implemented!**
+
+Needs console to support *ANSI escape codes* to work correctly in colored mode
+
+# Extension operators 
+* inc \<varname\> - increments given variable
+* read \<varname\> - reads value into given variable
+
+# Extension commands 
+* run - continues Guu execution without debugging
+* exit - exits the interpreter
+* help - prints list of available variables
+
+# Description 
 **Задача**: реализовать пошаговое исполнение кода для тривиального языка программирования Guu.
 
 Внимание: в описании ниже заведомо опущены некоторые существенные моменты. Как правило, они остаются на ваше усмотрение. Если будет совсем непонятно, пишите на yan.zhulanow[at]jetbrains.com.

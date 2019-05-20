@@ -13,7 +13,7 @@ class OutputHandler(override val guiMode: Boolean = false) : Handler {
     fun writeDebuggerString(output: String, level: Int = 0, newLine: Boolean = false,
                             color: Color = Color.DEFAULT) {
         if (!guiMode) {
-            for (i in 0 until level) print(" ")
+            for (i in 0 until level) print("\t")
             print("\u001B[${color.number}m$output\u001B[0m")
             if (newLine) println()
         } else {
@@ -25,7 +25,7 @@ class OutputHandler(override val guiMode: Boolean = false) : Handler {
     fun writeString(output: String, level: Int = 0, newLine: Boolean = false,
                     color: Color = Color.DEFAULT) {
         if (!guiMode) {
-            for (i in 0 until level) print(" ")
+            for (i in 0 until level) print("\t")
             print("\u001B[${color.number}m$output\u001B[0m")
             if (newLine) println()
         } else {

@@ -27,8 +27,8 @@ enum class Command(val word: String, val description: String) : Word {
         override fun action(state: InterpretationState): Boolean {
             state.callStack.forEachIndexed { i, call ->
                 val caller = state.callStack[i]
-                state.outputHandler.writeString(
-                        "${caller.returnLineNumber}:" +
+                state.outputHandler.writeDebuggerString(
+                        "${caller.returnLineNumber - 1}:" +
                                 " ${call.procedure.name}", i, true)
             }
             return false
