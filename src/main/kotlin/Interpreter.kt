@@ -14,11 +14,12 @@ lateinit var state: InterpretationState
 /**
  * Here we go
  * I suppose that we can pass only one file with code to interpreter.
- * If args.length is bigger than 1, then length - 1 args are passed
+ * If args.length is bigger than 1, then length - 1 options are passed
  * I/O processed via [InputHandler] and [OutputHandler]
- * If key -r is passed, the interpreter runs in normal (non-step) mode, so it simply completes
+ * If option -r is passed, the interpreter runs in normal (non-step) mode, so it simply completes
  * the Guu program. If program has recursion, loop is expected since there's no conditions
- * If key -g is passed, the program is going to run in GUI mode, but this is not implemented
+ * (and program will eventually die when callstack exceeds Integer.maxValue)
+ * If option -g is passed, the program is going to run in GUI mode, but this is not implemented
  */
 fun main(args: Array<String>) {
     state = InterpretationState()
@@ -36,7 +37,7 @@ fun main(args: Array<String>) {
         initProgram()
         // run interpretation
         if (state.stepMode)
-            state.outputHandler.writeString(
+            state.outputHandler.writeDebuggerString(
                     "Type help for the params of commands",
                     color = Color.GREEN, newLine = true)
         startInterpreter()
@@ -48,7 +49,7 @@ fun main(args: Array<String>) {
         System.err.println(e.message)
         exitProcess(1)
     } catch (e: Throwable) {
-        state.outputHandler.writeString(e.message ?: "Error occurred", color = Color.RED)
+        state.outputHandler.writeDebuggerString(e.message ?: "Error occurred", color = Color.RED)
     }
 }
 
@@ -197,16 +198,16 @@ fun startInterpreter() {
  */
 fun waitForCommand(line: String, printLine: Boolean = true) {
     if (state.callStack.peek().stepIn) {
-        if (printLine) state.outputHandler.writeString(line,
+        if (printLine) state.outputHandler.writeDebuggerString(line,
                 state.callStack.size - 1, true, Color.MAGENTA)
 
-        state.outputHandler.writeString("Input command: ", color = Color.GREEN)
+        state.outputHandler.writeDebuggerString("Input command: ", color = Color.GREEN)
 
         val command = Command.getCommand(state.inputHandler.getDebuggerInput())
         if (command != null) {
             if (!command.action(state)) waitForCommand(line, false)
         } else {
-            state.outputHandler.writeString(
+            state.outputHandler.writeDebuggerString(
                     "Unknown command, type \"help\" for commands", newLine = true)
             waitForCommand(line, false)
         }
