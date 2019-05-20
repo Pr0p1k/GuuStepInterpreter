@@ -12,6 +12,7 @@ Some example Guu files are in src/test/resources
 Available params:
 * -r - run without stops (straight execution of guu)
 * -g - run with GUI. **Not implemented!**
+
 Filename should be the last argument
 
 Needs console to support *ANSI escape codes* to work correctly in colored mode
