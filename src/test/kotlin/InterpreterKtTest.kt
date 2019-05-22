@@ -24,6 +24,7 @@ internal class InterpreterKtTest {
     private fun loadState(args: Array<String>): List<String> {
         state.variables.clear()
         state.procedures.clear()
+        state.callStack.clear()
         initInterpreter(args)
         val lines = readFile(args.last()).toList()
         hoistDeclarations(lines)

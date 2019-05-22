@@ -11,7 +11,7 @@ internal class InterpreterUtilsTest {
     @CsvSource("src/test/resources/test1.guu, 21",
             "src/test/resources/test2.guu, 16",
             "src/test/resources/test3.guu, 0",
-            "src/test/resources/test4.guu, 4",
+            "src/test/resources/test4.guu, 6",
             "src/test/resources/test5.guu, 7")
     fun readFile(file: String, linesNumber: Int) {
         assertEquals(readFile(file).toList().size, linesNumber)
