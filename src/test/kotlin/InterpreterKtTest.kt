@@ -61,6 +61,7 @@ internal class InterpreterKtTest {
         initProgram()
         startInterpreter()
         val outputLines = output.split("/")
+        if (outputQueue.size != outputLines.size)  fail<String>("Output size doesn't match")
         outputLines.forEach {
             assertEquals(outputQueue.take(), it)
         }
