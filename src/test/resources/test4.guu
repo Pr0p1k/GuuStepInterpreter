@@ -1,4 +1,6 @@
 sub main
 print k
 set k -4
+print k
 sub k
+
